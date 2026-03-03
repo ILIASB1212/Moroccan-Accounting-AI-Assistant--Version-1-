@@ -9,7 +9,7 @@ from src.DataBase import db_user
  
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
  
-SECRET_KEY = '77407c7339a6c00544e51af1101c4abb4aea2a31157ca5f7dfd87da02a628107'
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = 'HS256'
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
  

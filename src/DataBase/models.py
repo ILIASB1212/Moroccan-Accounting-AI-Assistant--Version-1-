@@ -17,8 +17,8 @@ class DBuser(Base):
 
 class DBCHAT(Base):
     __tablename__="chat"
-    message_id = Column(Integer) # each message have unique id
-    conversation_id=Column(String,primary_key=True,index=True) # each conversation/session have unique id 
+    message_id = Column(Integer, primary_key=True, autoincrement=True)
+    conversation_id = Column(String, index=True)
     user_id = Column(Integer, ForeignKey("user.id")) # user id 
     role=Column(String)
     content=Column(String)
