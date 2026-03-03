@@ -5,12 +5,6 @@ from src.data_ingestion.embedding import  Embeddings
 from src.data_ingestion.text_spliter import TextSpliter
 from src.data_ingestion.vectorestore import VectorStore
 from pathlib import Path
-
-
-DATA_DIR = r"C:\Users\VICTUS\Desktop\accountant\data\CGNC"  # Change per file
-PERSIST_DIR = "vectorestore\db_CGNC"  # Change per file
-FORCE_REBUILD = False  # Set to True only when you want to rebuild
-
 class RagPipeLine:
     def __init__(self,data_dir,persist_dir,force_rebuild,chunk_size,chunk_overlap):
         self.data_dir=data_dir
