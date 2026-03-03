@@ -4,13 +4,19 @@ from src.data_ingestion.text_spliter import TextSpliter
 from src.data_ingestion.vectorestore import VectorStore
 from src.PipeLine.pipeline import RagPipeLine
 
+from dotenv import load_dotenv
+import os
 
-DATA_DIR = r"C:\Users\VICTUS\Desktop\accountant\data\PLAN_COMPTABLE"  # Change per file
-PERSIST_DIR = "vectorestore/db_plan_comptable"  # Change per file
-FORCE_REBUILD = False  # Set to True only when you want to rebuild
+load_dotenv()
+
+# Get paths from environment variables with fallbacks
+DATA_DIR = os.getenv("PLAN_COMPTABLE_DATA_DIR", "./data\PLAN_COMPTABLE")
+PERSIST_DIR = os.getenv("PLAN_COMPTABLE_PERSIST_DIR", "vectorestore/db_plan_comptable")
+FORCE_REBUILD = os.getenv("FORCE_REBUILD", "False").lower() == "true" 
+
 
 rag=RagPipeLine(data_dir=DATA_DIR,
-            persist_dir=PERSIST_DIR,force_rebuild=False,chunk_size=1000,chunk_overlap=250)
+            persist_dir=PERSIST_DIR,force_rebuild=False,chunk_size=100,chunk_overlap=20)
 retriever=rag.run()
 
 ### Retriever To Retriever Tools

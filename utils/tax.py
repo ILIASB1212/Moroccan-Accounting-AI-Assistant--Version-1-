@@ -1,8 +1,14 @@
 from src.PipeLine.pipeline import RagPipeLine
 
-DATA_DIR = r"C:\Users\VICTUS\Desktop\accountant\data\CGI"  # Change per file
-PERSIST_DIR = "vectorestore/db_CGI"  # Change per file
-FORCE_REBUILD = False  # Set to True only when you want to rebuild
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+# Get paths from environment variables with fallbacks
+DATA_DIR = os.getenv("CGI_DATA_DIR", "./data\CGI")
+PERSIST_DIR = os.getenv("CGI_PERSIST_DIR", "vectorestore/db_CGI")
+FORCE_REBUILD = os.getenv("FORCE_REBUILD", "False").lower() == "true" 
 
 rag=RagPipeLine(data_dir=DATA_DIR,
             persist_dir=PERSIST_DIR,force_rebuild=False,chunk_size=1000,chunk_overlap=250)

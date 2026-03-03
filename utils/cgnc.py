@@ -4,10 +4,15 @@ from src.data_ingestion.text_spliter import TextSpliter
 from src.data_ingestion.vectorestore import VectorStore
 from pathlib import Path
 from src.PipeLine.pipeline import RagPipeLine
+from dotenv import load_dotenv
+import os
 
-DATA_DIR = r"C:\Users\VICTUS\Desktop\accountant\data\CGNC"  # Change per file
-PERSIST_DIR = "vectorestore/db_CGNC"  # Change per file
-FORCE_REBUILD = False  # Set to True only when you want to rebuild
+load_dotenv()
+
+# Get paths from environment variables with fallbacks
+DATA_DIR = os.getenv("CGNC_DATA_DIR", "./data/CGNC")
+PERSIST_DIR = os.getenv("CGNC_PERSIST_DIR", "vectorestore/db_CGNC")
+FORCE_REBUILD = os.getenv("FORCE_REBUILD", "False").lower() == "true"  
 
 rag=RagPipeLine(data_dir=DATA_DIR,
             persist_dir=PERSIST_DIR,force_rebuild=False,chunk_size=1000,chunk_overlap=250)
@@ -17,7 +22,7 @@ from langchain_classic.tools.retriever import create_retriever_tool
 
 cgnc_tool = create_retriever_tool(
     retriever,
-    "cgnc_accounting_tool",  # Simplified name
+    "cgnc_accounting_tool",
     """Use this tool for ANY questions about:
     - Moroccan accounting (CGNC - Code Général de Normalisation Comptable)
     - Financial reporting standards in Morocco

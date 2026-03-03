@@ -4,9 +4,15 @@ from src.data_ingestion.text_spliter import TextSpliter
 from src.data_ingestion.vectorestore import VectorStore
 from src.PipeLine.pipeline import RagPipeLine
 
-DATA_DIR = r"C:\Users\VICTUS\Desktop\accountant\data\LOIS_DE_FINANCE"  # Change per file
-PERSIST_DIR = "vectorestore/db_lois_de_finance"  # Change per file
-FORCE_REBUILD = False  # Set to True only when you want to rebuild
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+# Get paths from environment variables with fallbacks
+DATA_DIR = os.getenv("FINANCE_DATA_DIR", "./data\LOIS_DE_FINANCE")
+PERSIST_DIR = os.getenv("FINANCE_PERSIST_DIR", "vectorestore/db_lois_de_finance")
+FORCE_REBUILD = os.getenv("FORCE_REBUILD", "False").lower() == "true"  
 
 rag=RagPipeLine(data_dir=DATA_DIR,
             persist_dir=PERSIST_DIR,force_rebuild=False,chunk_size=1000,chunk_overlap=250)
