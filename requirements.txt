@@ -28,7 +28,8 @@ sqlalchemy
 passlib
 bcrypt==4.0.1  # Kept version as requested
 pyjwt
-
+python-multipart
+python-jose[cryptography]
 
 # Utilities
 python-dotenv
@@ -41,3 +42,20 @@ ipywidgets
 
 sentence-transformers
 langchain-huggingface
+pytesseract 
+pillow 
+pdf2image
+addict 
+matplotlib 
+torchvision
+einops
+easydict
+
+
+
+
+torch==2.6.0
+transformers==4.46.3
+tokenizers==0.20.3
+#flash-attn==2.7.3 
+

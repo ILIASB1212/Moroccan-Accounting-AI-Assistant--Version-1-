@@ -1,16 +1,11 @@
-# Add this at the VERY TOP of agent.py (before any other imports)
 import sys
 import os
 from pathlib import Path
 
-# Get the absolute path to the project root (accountant folder)
-project_root = Path(__file__).parent.parent  # Goes from src/ to accountant/
+project_root = Path(__file__).parent.parent 
 sys.path.insert(0, str(project_root))
 
-
-# load librarys
 from langchain_core.messages import AIMessage, HumanMessage,SystemMessage
-
 from typing_extensions import TypedDict
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
@@ -28,24 +23,18 @@ from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt import tools_condition
 from utils.cgnc import cgnc_tool
 from utils.plan_comptable import plan_comptable_tool
-#from utils import search, web_loader_tool
 
-
-#load llm and his key
 load_dotenv()
 os.environ["GROQ_API_KEY"]=os.getenv("GROQ_API_KEY")
 llm_groq=ChatGroq(model="openai/gpt-oss-20b")
 
-## Reducers and creating state
 class State(TypedDict):
     messages:Annotated[list,add_messages]
 
 
-#initiating tools
-
 tools=[cgnc_tool,search,web_loader_tool,finance_law_tool,CGI_tool,plan_comptable_tool]
 llm_with_tools=llm_groq.bind_tools(tools)
-#functions for llms
+
 def superbot(state:State):
     return {"messages":[llm_groq.invoke(state['messages'])]}
 
@@ -74,7 +63,6 @@ def tool_calling_llm(state:State):
     """
     last_message = state["messages"][-1].content if state["messages"] else ""
     
-    # Inject the question into prompt
     formatted_prompt = prompt.replace("{question}", last_message)
     system_message = SystemMessage(content=formatted_prompt)
     all_messages = [system_message] + state["messages"]
@@ -92,26 +80,20 @@ def agent_structring_response(state:State):
     Current response to structure: {response}
     """
     
-    # Get the last AI message content
     last_response = state["messages"][-1].content if state["messages"] else ""
     formatted_prompt = prompt.replace("{response}", last_response)
     system_message = SystemMessage(content=formatted_prompt)
-    
-    # Combine system message with existing messages
     all_messages = [system_message] + state["messages"]
     return {"messages":[llm_with_tools.invoke(all_messages)]}
 
 def route_by_keyword(state: State) -> dict:
     """Pre-process to force accounting tool for relevant queries"""
     last_message = state["messages"][-1].content.lower() if state["messages"] else ""
-    
-    # Check for accounting keywords
     accounting_keywords = ["cgnc", "comptabilité", "accounting", 
                           "financial", "amortissement", "bilan"]
     
     if any(keyword in last_message for keyword in accounting_keywords):
-        # Force the model to use accounting tool
-        forced_prompt = """IMPORTANT: This is an accounting question about Morocco. 
+        forced_prompt = """IMPORTANT:if This is an accounting question about Morocco. 
         You MUST use the 'cgnc_accounting_tool' to answer this question.
         Do not use any other tool until you've tried this one.
         
@@ -122,20 +104,13 @@ def route_by_keyword(state: State) -> dict:
     
     return state
 
-# initiating state
 graph = StateGraph(State)
-
-## Nodes
 graph.add_node("tool_calling_llm", tool_calling_llm)
 graph.add_node("tools", ToolNode(tools))
 graph.add_node("structures", agent_structring_response)
 graph.add_node("route_by_keyword", route_by_keyword)
-
-## Edges
 graph.add_edge(START, "route_by_keyword")
 graph.add_edge("route_by_keyword", "tool_calling_llm")
-
-# First conditional: from tool_calling_llm
 graph.add_conditional_edges(
     "tool_calling_llm",
     tools_condition,
@@ -144,11 +119,7 @@ graph.add_conditional_edges(
         "__end__": END
     }
 )
-
-# After tools, always go to structures
 graph.add_edge("tools", "structures")
-
-# Second conditional: from structures
 graph.add_conditional_edges(
     "structures",
     tools_condition,
@@ -159,7 +130,13 @@ graph.add_conditional_edges(
 )
 
 # Compile
-graph_builder=graph.compile()
+from langgraph.checkpoint.memory import MemorySaver
+
+memory = MemorySaver()
+
+# Compile the graph with memory
+graph_builder = graph.compile(checkpointer=memory)
+
 
 #streamlit setup
 st.title("Simple LangGraph Test")

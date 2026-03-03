@@ -1,97 +1,192 @@
-from fastapi import FastAPI,staticfiles,File,UploadFile
+from fastapi import FastAPI, File, UploadFile, HTTPException,Depends,Form
 from src.agent import graph_builder
-# Add this at the VERY TOP of agent.py (before any other imports)
 import sys
 from pathlib import Path
 # Get the absolute path to the project root (accountant folder)
-project_root = Path(__file__).parent.parent  # Goes from src/ to accountant/
+project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-# load librarys
-from langchain_core.messages import HumanMessage
 
 from langchain_core.messages import HumanMessage
+import uuid
+from utils.pytesteras import ocr
+
+# Database imports
+from src.DataBase import models
+from src.DataBase.database import engine
+from fastapi.middleware.cors import CORSMiddleware
+from src.auth.oauth2 import get_current_user
+from src.auth import authontification
+from src.router.schema import UserAuth
+
+# 👇 IMPORT YOUR CHAT ROUTER
+from src.router import chat,user  # Assuming chat.py is in a 'routers' folder
+# OR if chat.py is in the same directory:
+# from .chat import router as chat_router
 
 app = FastAPI(title="Comptable AI Assistant")
+
+# Create database tables
+models.Base.metadata.create_all(engine)
+
+# CORS middleware
+origins = [
+    "http://localhost:3000",
+    "http://localhost:8080",
+    "http://127.0.0.1:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+# 👇 INCLUDE THE CHAT ROUTER
+app.include_router(chat.router)
+app.include_router(user.router)
+app.include_router(authontification.router)
+
+
+
+# This will make all chat endpoints available at /api/chat/*
+
+# Your existing endpoints
 @app.post("/")
-def chat_comptable(test_message:str):
-    result = graph_builder.invoke({'messages': HumanMessage(content=test_message)})
-        # chekking tool caling if and else 
+def chat_comptable(test_message: str, session_id: str = "default"):
+    # Use session_id to maintain separate conversations
+    config = {"configurable": {"thread_id": f"session_{session_id}"}}
+    
+    result = graph_builder.invoke(
+        {'messages': [HumanMessage(content=test_message)]},
+        config=config
+    )
     if result["messages"][1].tool_calls:
         for tool_call in result["messages"][1].tool_calls:
             print(f"🔧 Tools were called : {tool_call['name']}")
-            return {"the source":f" {tool_call['name']}",
-                     "Response":f"📝 {result['messages'][-1].content}"}
-    
+            return {
+                "the source": f"{tool_call['name']}",
+                "Response": f"📝 {result['messages'][-1].content}"
+            }
     else:
         print(f"🔧 Tools were called : LLM (no tools used)")
-        return {"the source":"LLM (no tools used)}",
-                     "Response":f"📝 {result['messages'][-1].content}"}
-    
-
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from langchain_core.messages import HumanMessage
-from src.agent import graph_builder
-import pytesseract
-from utils.deepseek_ocr import ocr
-from pathlib import Path
+        return {
+            "the source": "LLM (no tools used)",
+            "Response": f"📝 {result['messages'][-1].content}"
+        }
 
 # Configuration
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
-
-def itt(img:bytes):
-    return pytesseract.image_to_string(img)
+####################################################""
 
 
 @app.post("/upload")
-async def upload_facture(file: UploadFile = File(...)):
+async def upload_facture(
+    text: str = Form(None),
+    language: str = Form("fra"),
+    file: UploadFile = File(None),
+    session_id: str = Form("default"),
+    current_user: UserAuth = Depends(get_current_user)
+):
     """
-    Upload a facture (invoice) and comptabilise it with enhanced OCR
+    Upload a facture (invoice) OR just send text to comptabilise it
+    - file: Optional - image of invoice (jpg, png, pdf)
+    - text: Optional - text description of the transaction
+    - language: OCR language (default: 'fra' for French)
     """
+    # IMPORTANT: Check if file exists FIRST
+    has_file = file is not None and hasattr(file, 'filename') and file.filename is not None
+    
     try:
+        extracted_text = ""
+        file_info = {"has_file": False}
+        
+        # CASE 1: File was uploaded
+        if has_file:
+            # Validate file type
+            allowed_types = ["image/jpeg", "image/png", "image/jpg", "application/pdf"]
+            if file.content_type not in allowed_types:
+                raise HTTPException(400, f"Invalid file type: {file.content_type}")
+            
+            # Save the file
+            file_extension = Path(file.filename).suffix
+            unique_filename = f"{uuid.uuid4()}{file_extension}"
+            file_path = UPLOAD_DIR / unique_filename
 
-        extracted_text=ocr(file.file)
-        # Create enhanced prompt with extracted text
-        prompt = f"""TASK: Comptabiliser cette facture d'achat selon les normes CGMC (Code Général de Normalisation Comptable marocain)
+            content = await file.read()
+            with open(file_path, "wb") as buffer:
+                buffer.write(content)
 
-TEXTE EXTRAIT DE LA FACTURE (via OCR):
+            print(f"✅ File saved: {file_path}")
+            
+            # Extract text using OCR
+            extracted_text = ocr(str(file_path), language)
+            print(f"📄 Extracted text preview: {extracted_text[:200]}...")
+            
+            file_info = {
+                "has_file": True,
+                "filename": file.filename,
+                "saved_as": unique_filename
+            }
+        
+        # CASE 2: No file, just text
+        if text and text.strip():
+            if extracted_text:  # If we already have OCR text, append the user's text
+                extracted_text = extracted_text + "\n\n" + text
+            else:
+                extracted_text = text
+            print(f"📝 Using text input: {text[:100]}...")
+        
+        # CASE 3: Neither file nor text provided
+        if not has_file and not text:
+            raise HTTPException(400, "Either file or text must be provided")
+        
+        # Prepare prompt for the agent
+        if has_file:
+            prompt = f"""
 {extracted_text}
 
-INFORMATIONS IDENTIFIÉES:
-- Date: 28/01/2024
-- Date d'échéance: 11/02/2024
-- Produit: 3 unités à 189,00€ (total 567,00€) + TVA 20%
-- Service: 1 unité à 800,00€ (total 800,00€) + TVA 20%
-- Remise 10% sur service: -80,00€
-- Total HT: 1 287,00€
-- TVA totale: 257,40€
-- Total TTC: 1 544,40€
-
-INSTRUCTIONS:
-1. Analyser cette facture d'achat
-2. Proposer les écritures comptables selon le plan comptable marocain avec le format:
-   numéro compte débiteur | numéro compte créditeur | libellé | montant
-
-3. Pour cette facture d'achat, utiliser:
-   - Compte de charge: 6131 (Achats de matières et fournitures)
-   - Compte de TVA récupérable: 3455
-   - Compte fournisseur: 4411
-
-4. Présenter l'écriture comptable complète
 """
+        else:
+            prompt = f"""
+{extracted_text}
+
+
+"""
+
+        # Invoke agent with session_id for memory
+        config = {"configurable": {"thread_id": f"session_{session_id}"}}
         
-        # Send to agent
-        result = graph_builder.invoke({
-            'messages': [HumanMessage(content=prompt)]
-        })
-        
-        return {
+        result = graph_builder.invoke(
+            {'messages': [HumanMessage(content=prompt)]},
+            config=config
+        )
+
+        # Build response
+        response = {
             "success": True,
-            "filename": file.filename,
+            "has_file": has_file,
             "extracted_text": extracted_text,
-            "comptabilisation": result['messages'][-1].content
+            "comptabilisation": result['messages'][-1].content,
+            "session_id": session_id
         }
         
+        # Add file info if present
+        if has_file:
+            response["filename"] = file_info.get("filename")
+            response["saved_as"] = file_info.get("saved_as")
+        
+        return response
+
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        # Only close file if it exists
+        if has_file:
+            await file.close()

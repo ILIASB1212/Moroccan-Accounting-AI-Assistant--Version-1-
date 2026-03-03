@@ -1,0 +1,23 @@
+# Python
+__pycache__
+*.pyc
+.env
+.venv
+env/
+
+# Data directories (don't copy - will be mounted as volumes)
+data/
+vectorstore/
+uploads/
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Database
+*.db
+*.db-journal
