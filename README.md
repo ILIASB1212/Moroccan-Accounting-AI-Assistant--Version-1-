@@ -40,4 +40,4 @@ ACCOUNTANT:
 │ main.py                  # main api endpoint
 
 ## 🚦 Getting Started
-- uvicorn main:app --reloaf
+- uvicorn main:app --reload 
