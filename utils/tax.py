@@ -11,7 +11,7 @@ PERSIST_DIR = os.getenv("CGI_PERSIST_DIR", "vectorestore/db_CGI")
 FORCE_REBUILD = os.getenv("FORCE_REBUILD", "False").lower() == "true" 
 
 rag=RagPipeLine(data_dir=DATA_DIR,
-            persist_dir=PERSIST_DIR,force_rebuild=False,chunk_size=1000,chunk_overlap=250)
+            persist_dir=PERSIST_DIR,force_rebuild=False,chunk_size=800,chunk_overlap=150)
 
 retriever=rag.run()
 ### Retriever To Retriever Tools
