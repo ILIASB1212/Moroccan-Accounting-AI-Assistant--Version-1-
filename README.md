@@ -14,7 +14,7 @@ AI-powered assistant for Moroccan accounting standards (CGNC, CGI, Finance Laws)
 - 🗄️ **SQLite Database** for users & conversations
 
 ## 🏗️ Architecture
-[Diagram of your architecture]
+- Langgraph workflow archtecture -- see the image in files --
 
 ## 🛠️ Tech Stack
 - LangChain + LangGraph (Agentic RAG)
@@ -40,4 +40,4 @@ ACCOUNTANT:
 │ main.py                  # main api endpoint
 
 ## 🚦 Getting Started
-- uvicorn main:app --reloaf
+- uvicorn main:app --reload 
