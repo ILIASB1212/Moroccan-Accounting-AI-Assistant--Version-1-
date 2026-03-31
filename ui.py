@@ -2,13 +2,14 @@ import sys
 from pathlib import Path
 project_root = Path(__file__).parent.parent 
 sys.path.insert(0, str(project_root))
-
+import time
 from langchain_core.messages import HumanMessage, SystemMessage
 import streamlit as st
 from dotenv import load_dotenv
 import io
 from utils.upload_parametre import read_file_content
 from src.agent import graph_builder
+from env.Lib.turtledemo.penrose import start
 load_dotenv()
 
 # Streamlit setup
@@ -32,6 +33,7 @@ test_message = st.chat_input("Enter your query")
 
 # Button to run test
 if test_message:
+    start_time = time.time()
     st.write(f"**Your query:** {test_message}")
     with st.spinner("generating"):
         # Process uploaded files if they exist
@@ -56,12 +58,15 @@ if test_message:
             )
             
             # Checking tool calling if and else
+            end_time = time.time()
             if result["messages"][1].tool_calls:
+
                 for tool_call in result["messages"][1].tool_calls:
-                    st.write(f"the source: {tool_call['name']}")
+                    st.write(f"the source: {tool_call['name']} Execution time: {end_time - start_time:.2f} seconds")
+                    
                     st.markdown(f"Response: 📝 {result['messages'][-1].content}")
             else:
-                st.write("the source: LLM (no tools used)")
+                st.write(f"the source: LLM (no tools used) Execution time: {end_time - start_time:.2f} seconds")
                 st.markdown(f"Response: 📝 {result['messages'][-1].content}")
             
         except Exception as e:

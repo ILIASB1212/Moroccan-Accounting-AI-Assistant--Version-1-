@@ -26,7 +26,7 @@ from utils.plan_comptable import plan_comptable_tool
 
 load_dotenv()
 os.environ["GROQ_API_KEY"]=os.getenv("GROQ_API_KEY")
-llm_groq=ChatGroq(model="qwen/qwen3-32b")
+llm_groq=ChatGroq(model="llama-3.3-70b-versatile")
 
 class State(TypedDict):
     messages:Annotated[list,add_messages]
