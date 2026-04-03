@@ -19,10 +19,10 @@ config = {"configurable": {"thread_id": "AAA"}}
 
 # File uploader - accept multiple file types
 uploaded_files = st.file_uploader(
-    "Choose a file", 
-    type=['txt', 'pdf', 'docx',"png","JPEG"],
-    accept_multiple_files=False
+    "Upload a file",
+    type=["txt", "pdf", "docx", "jpg", "jpeg", "png", "tiff", "bmp"]
 )
+
 
 # Display file info if uploaded
 if uploaded_files is not None:
