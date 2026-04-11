@@ -10,18 +10,26 @@ import io
 from utils.upload_parametre import read_file_content
 from src.agent import graph_builder
 load_dotenv()
+import os
+from langfuse.langchain import CallbackHandler
+from dotenv import load_dotenv
 
+load_dotenv()
+os.environ["LANGFUSE_PUBLIC_KEY"]=os.getenv("LANGFUSE_PUBLIC_KEY")
+os.environ["LANGFUSE_SECRET_KEY"]=os.getenv("LANGFUSE_SECRET_KEY")
+os.environ["LANGFUSE_BASE_URL"]=os.getenv("LANGFUSE_BASE_URL")
+langfuse_handler = CallbackHandler()
 # Streamlit setup
-st.title("Simple LangGraph Test")
+st.title("accounatant ai assistant")
 
-config = {"configurable": {"thread_id": "AAA"}}
+config = {"configurable": {"thread_id": "AAA"},
+          "callbacks": [langfuse_handler]}
 
 # File uploader - accept multiple file types
 uploaded_files = st.file_uploader(
     "Upload a file",
     type=["txt", "pdf", "docx", "jpg", "jpeg", "png", "tiff", "bmp"]
 )
-
 
 # Display file info if uploaded
 if uploaded_files is not None:

@@ -18,6 +18,7 @@ from langgraph.prebuilt import ToolNode
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import tools_condition
 from langgraph.graph.message import add_messages
+from langgraph.checkpoint.memory import MemorySaver
 # tools imports
 from utils.cgnc import cgnc_tool
 from utils.tax import CGI_tool
@@ -25,9 +26,19 @@ from utils.plan_comptable import plan_comptable_tool
 from utils.web_search_tool import google_search,search
 from utils.rag_web_base_loader_tool import web_loader_tool
 from utils.finance_law import finance_law_tool
-
+# tracing
+from langfuse.langchain import CallbackHandler
 load_dotenv()
+os.environ["LANGFUSE_PUBLIC_KEY"]=os.getenv("LANGFUSE_PUBLIC_KEY")
+os.environ["LANGFUSE_SECRET_KEY"]=os.getenv("LANGFUSE_SECRET_KEY")
+os.environ["LANGFUSE_BASE_URL"]=os.getenv("LANGFUSE_BASE_URL")
+# Initialize with keys from your .env
+langfuse_handler = CallbackHandler()
+#  env variables
 os.environ["GROQ_API_KEY"]=os.getenv("GROQ_API_KEY")
+os.environ["LANGCHAIN_API_KEY"]=os.getenv("LANGCHAIN_API_KEY")
+os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2")
+os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
 MODELS="openai/gpt-oss-120b"
 llm_groq=ChatGroq(model=MODELS)
 
@@ -52,7 +63,7 @@ def tool_calling_llm(state: State):
                                     Always use a tool before answering. Never answer accounting or tax questions from memory alone.
 """)
     all_messages = [system_message] + state["messages"]
-    return {"messages": [llm_with_tools.invoke(all_messages)][-7:]}
+    return {"messages": [llm_with_tools.invoke(all_messages)][-10:]}
 
 source_instruction_3 = {
         "code_general_normalisation_comptable_maroc": "Format as professional accounting advice. Mention this comes from CGNC standards. you must combine this with plan_comptable_general_marocain",
@@ -105,7 +116,6 @@ graph.add_conditional_edges(
 )
 
 # Compile
-from langgraph.checkpoint.memory import MemorySaver
 
 memory = MemorySaver()
 
