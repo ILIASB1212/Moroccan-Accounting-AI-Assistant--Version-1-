@@ -48,7 +48,17 @@ app.include_router(chat.router)
 app.include_router(user.router)
 app.include_router(authontification.router)
 
+##################"
+from langfuse.langchain import CallbackHandler
+from dotenv import load_dotenv
+import os
+load_dotenv()
+os.environ["LANGFUSE_PUBLIC_KEY"]=os.getenv("LANGFUSE_PUBLIC_KEY")
+os.environ["LANGFUSE_SECRET_KEY"]=os.getenv("LANGFUSE_SECRET_KEY")
+os.environ["LANGFUSE_BASE_URL"]=os.getenv("LANGFUSE_BASE_URL")
+langfuse_handler = CallbackHandler()
 
+# "
 
 # This will make all chat endpoints available at /api/chat/*
 
@@ -56,7 +66,8 @@ app.include_router(authontification.router)
 @app.post("/")
 def chat_comptable(test_message: str, session_id: str = "default"):
     # Use session_id to maintain separate conversations
-    config = {"configurable": {"thread_id": f"session_{session_id}"}}
+    config = {"configurable": {"thread_id": f"session_{session_id}",
+                               "callbacks": [langfuse_handler]}}
     
     result = graph_builder.invoke(
         {'messages': [HumanMessage(content=test_message)]},
