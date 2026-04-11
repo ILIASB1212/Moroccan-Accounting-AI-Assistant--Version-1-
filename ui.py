@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 import io
 from utils.upload_parametre import read_file_content
 from src.agent import graph_builder
-from env.Lib.turtledemo.penrose import start
 load_dotenv()
 
 # Streamlit setup
@@ -37,38 +36,35 @@ if test_message:
     st.write(f"**Your query:** {test_message}")
     with st.spinner("generating"):
         # Process uploaded files if they exist
+        enhanced_query=test_message
         file_content = ""
         if uploaded_files is not None:
-            file_content = read_file_content(uploaded_files)
-            
+            file_content = read_file_content(uploaded_files) or ""
+        
             if file_content:
                 # Combine file content with the query
-                enhanced_query = f"""Here is the file uploaded content: {file_content} , User query: {test_message}"""
-            else:
-                enhanced_query = test_message
+                enhanced_query = f"""{file_content} , User query: {test_message}"""
                 
-        else:
-            enhanced_query = test_message
         
         try:
             # Invoke the graph builder
             result = graph_builder.invoke(
-                {'messages': HumanMessage(content=enhanced_query)},
+                {'messages': HumanMessage(content=enhanced_query)}, 
                 config=config
             )
-            
-            # Checking tool calling if and else
+                
+                # Checking tool calling if and else
             end_time = time.time()
             if result["messages"][1].tool_calls:
 
                 for tool_call in result["messages"][1].tool_calls:
                     st.write(f"the source: {tool_call['name']} Execution time: {end_time - start_time:.2f} seconds")
-                    
+                        
                     st.markdown(f"Response: 📝 {result['messages'][-1].content}")
             else:
                 st.write(f"the source: LLM (no tools used) Execution time: {end_time - start_time:.2f} seconds")
                 st.markdown(f"Response: 📝 {result['messages'][-1].content}")
-            
+                
         except Exception as e:
             st.error(f"Error processing your request: {str(e)}")
             st.exception(e)  # This will show the full traceback for debugging
