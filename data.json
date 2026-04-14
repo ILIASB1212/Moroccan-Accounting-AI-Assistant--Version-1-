@@ -1,0 +1,152 @@
+[
+    {
+        "case_id": 1,
+        "user_input": "Facture Maroc Telecom: 300 MAD TTC. Internet Fibre. Date: 12/04/2026. Query: Enregistre cette charge.",
+        "expected_entry": "Débit: 61451 (Frais de téléphone) 250 MAD, Débit: 34552 (État TVA récupérable sur charges) 50 MAD, Crédit: 5141 (Banque) 300 MAD.",
+        "expected_accounts": ["61451", "34552", "5141"],
+        "expected_debits": 300,
+        "expected_credits": 300,
+        "model_output": "Débit: 61451 (Frais de téléphone) 250 MAD, Débit: 34553 (TVA) 50 MAD, Crédit: 5141 (Banque) 300 MAD.",
+        "context_retrieved": "Compte 61451: Frais de téléphone et communications. TVA récupérable: 34552 (charges), 34551 (immo)."
+    },
+    {
+        "case_id": 2,
+        "user_input": "Achat d'un PC portable HP Victus pour 8500 MAD chez ElectroPlanet. Query: comptabilise l'achat.",
+        "expected_entry": "Débit: 2355 (Matériel informatique) 7083.33 MAD, Débit: 34551 (TVA récupérable sur immo) 1416.67 MAD, Crédit: 4481 (Dettes sur acquisitions d'immo) 8500 MAD.",
+        "expected_accounts": ["2355", "34551", "4481"],
+        "expected_debits": 8500,
+        "expected_credits": 8500,
+        "model_output": "Débit: 2355 (Matériel informatique) 8500 MAD, Crédit: 5141 (Banque) 8500 MAD.",
+        "context_retrieved": "Compte 2355: Immobilisations corporelles. Taux TVA standard: 20%."
+    },
+    {
+        "case_id": 3,
+        "user_input": "Paiement loyer bureau: 4000 MAD par chèque. Query: journaliser.",
+        "expected_entry": "Débit: 61311 (Locations de bâtiments) 4000 MAD, Crédit: 5141 (Banque) 4000 MAD.",
+        "expected_accounts": ["61311", "5141"],
+        "expected_debits": 4000,
+        "expected_credits": 4000,
+        "model_output": "Débit: 61311 (Locations) 4000 MAD, Crédit: 5141 (Banque) 4000 MAD.",
+        "context_retrieved": "Compte 61311: Locations de bâtiments. Pas de TVA récupérable sur loyers."
+    },
+    {
+        "case_id": 4,
+        "user_input": "Facture Facebook Ads: 100 USD pour publicité. Query: comptabilisation.",
+        "expected_entry": "Débit: 61441 (Annonces et insertions) 1000 MAD (USD 100), Crédit: 5141 (Banque) 1000 MAD. Pas de TVA marocaine.",
+        "expected_accounts": ["61441", "5141"],
+        "expected_debits": 1000,
+        "expected_credits": 1000,
+        "model_output": "Débit: 61441 (Annonces) 100 USD, Crédit: 5141 (Banque) 100 USD.",
+        "context_retrieved": "Compte 61441: Annonces et insertions. Factures étrangères sans TVA récupérable."
+    },
+    {
+        "case_id": 5,
+        "user_input": "Achat fournitures de bureau: 450 MAD en espèces. Query: Enregistre.",
+        "expected_entry": "Débit: 61227 (Fournitures de bureau) 375 MAD, Débit: 34552 (TVA) 75 MAD, Crédit: 5311 (Caisse) 450 MAD.",
+        "expected_accounts": ["61227", "34552", "5311"],
+        "expected_debits": 450,
+        "expected_credits": 450,
+        "model_output": "Débit: 61227 (Fournitures) 450 MAD, Crédit: 5311 (Caisse) 450 MAD.",
+        "context_retrieved": "Compte 61227: Fournitures de bureau. TVA standard 20%."
+    },
+    {
+        "case_id": 6,
+        "user_input": "Facture Honoraires Comptable: 2000 MAD HT. Query: journal entry.",
+        "expected_entry": "Débit: 61365 (Honoraires) 2000 MAD, Débit: 34552 (TVA 20%) 400 MAD, Crédit: 4411 (Fournisseurs) 2400 MAD.",
+        "expected_accounts": ["61365", "34552", "4411"],
+        "expected_debits": 2400,
+        "expected_credits": 2400,
+        "model_output": "Débit: 61365 (Honoraires) 2400 MAD, Crédit: 4411 (Fournisseurs) 2400 MAD.",
+        "context_retrieved": "Compte 61365: Honoraires et commissions. TVA 20% récupérable."
+    },
+    {
+        "case_id": 7,
+        "user_input": "Réception facture électricité Redal: 600 MAD TTC. Query: comptabiliser.",
+        "expected_entry": "Débit: 61251 (Eau et électricité) 526.32 MAD, Débit: 34552 (TVA 14%) 73.68 MAD, Crédit: 4411 (Fournisseurs) 600 MAD.",
+        "expected_accounts": ["61251", "34552", "4411"],
+        "expected_debits": 600,
+        "expected_credits": 600,
+        "model_output": "Débit: 61251 (Électricité) 600 MAD, Crédit: 4411 (Fournisseurs) 600 MAD.",
+        "context_retrieved": "Compte 61251: Achats d'eau et d'électricité. TVA réduite 14%."
+    },
+    {
+        "case_id": 8,
+        "user_input": "Frais de déplacement taxi: 50 MAD. Query: comment enregistrer ?",
+        "expected_entry": "Débit: 61435 (Transports du personnel) 50 MAD, Crédit: 5311 (Caisse) 50 MAD.",
+        "expected_accounts": ["61435", "5311"],
+        "expected_debits": 50,
+        "expected_credits": 50,
+        "model_output": "Débit: 61434 (Déplacements) 50 MAD, Crédit: 5311 (Caisse) 50 MAD.",
+        "context_retrieved": "Compte 61435: Transports du personnel. Déplacements professionnels."
+    },
+    {
+        "case_id": 9,
+        "user_input": "Vente de services à un client local: 10000 MAD HT. Query: passer l'écriture.",
+        "expected_entry": "Débit: 3421 (Clients) 12000 MAD, Crédit: 71241 (Ventes de services produits au Maroc) 10000 MAD, Crédit: 4455 (État TVA facturée) 2000 MAD.",
+        "expected_accounts": ["3421", "71241", "4455"],
+        "expected_debits": 12000,
+        "expected_credits": 12000,
+        "model_output": "Débit: 3421 (Clients) 10000 MAD, Crédit: 71241 (Ventes services) 10000 MAD.",
+        "context_retrieved": "Compte 71241: Ventes de prestations. TVA facturée 20%."
+    },
+    {
+        "case_id": 10,
+        "user_input": "Achat de marchandises: 5000 MAD HT, remise 5%. Query: comptabilise.",
+        "expected_entry": "Débit: 6111 (Achats) 4750 MAD (net après remise), Débit: 34552 (TVA) 950 MAD, Crédit: 4411 (Fournisseurs) 5700 MAD.",
+        "expected_accounts": ["6111", "34552", "4411"],
+        "expected_debits": 5700,
+        "expected_credits": 5700,
+        "model_output": "Débit: 6111 (Achats marchandises) 5000 MAD, Débit: 34552 (TVA) 1000 MAD, Crédit: 4411 (Fournisseurs) 6000 MAD.",
+        "context_retrieved": "Compte 6111: Achats de marchandises. Réductions commerciales nettes."
+    },
+    {
+        "case_id": 11,
+        "user_input": "Prime d'assurance AXA: 3000 MAD. Query: journal.",
+        "expected_entry": "Débit: 6134 (Primes d'assurances) 3000 MAD, Crédit: 5141 (Banque) 3000 MAD. Pas de TVA.",
+        "expected_accounts": ["6134", "5141"],
+        "expected_debits": 3000,
+        "expected_credits": 3000,
+        "model_output": "Débit: 6134 (Assurances) 3000 MAD, Crédit: 5141 (Banque) 3000 MAD.",
+        "context_retrieved": "Compte 6134: Primes d'assurances. Pas de TVA (taxe spécifique)."
+    },
+    {
+        "case_id": 12,
+        "user_input": "Virement bancaire pour payer la patente (Taxe Professionnelle): 1200 MAD. Query: enregistre.",
+        "expected_entry": "Débit: 61612 (Patente/Taxe Professionnelle) 1200 MAD, Crédit: 5141 (Banque) 1200 MAD.",
+        "expected_accounts": ["61612", "5141"],
+        "expected_debits": 1200,
+        "expected_credits": 1200,
+        "model_output": "Débit: 6161 (Impôts) 1200 MAD, Crédit: 5141 (Banque) 1200 MAD.",
+        "context_retrieved": "Compte 61612: Patente. Taxe directe non déductible."
+    },
+    {
+        "case_id": 13,
+        "user_input": "Achat de carburant (Gazole) pour voiture de société: 400 MAD TTC. Query: journal.",
+        "expected_entry": "Débit: 61221 (Combustibles) 400 MAD (TTC car TVA non récupérable), Crédit: 5311 (Caisse) 400 MAD.",
+        "expected_accounts": ["61221", "5311"],
+        "expected_debits": 400,
+        "expected_credits": 400,
+        "model_output": "Débit: 61221 (Carburant) 333.33 MAD, Débit: 34552 (TVA) 66.67 MAD, Crédit: 5311 (Caisse) 400 MAD.",
+        "context_retrieved": "Compte 61221: Combustibles. TVA non récupérable sur voitures tourisme."
+    },
+    {
+        "case_id": 14,
+        "user_input": "Cadeaux clients (Agendas): 800 MAD TTC. Query: comptabilise.",
+        "expected_entry": "Débit: 61447 (Cadeaux à la clientèle) 800 MAD, Crédit: 5141 (Banque) 800 MAD. Attention au plafond fiscal (100 MAD/unité).",
+        "expected_accounts": ["61447", "5141"],
+        "expected_debits": 800,
+        "expected_credits": 800,
+        "model_output": "Débit: 61447 (Cadeaux) 800 MAD, Crédit: 5141 (Banque) 800 MAD.",
+        "context_retrieved": "Compte 61447: Cadeaux à la clientèle. Plafond fiscal 100 MAD par unité."
+    },
+    {
+        "case_id": 15,
+        "user_input": "Réparation machine atelier: 1500 MAD HT. Query: journal.",
+        "expected_entry": "Débit: 6133 (Entretien et réparations) 1500 MAD, Débit: 34552 (TVA 20%) 300 MAD, Crédit: 4411 (Fournisseurs) 1800 MAD.",
+        "expected_accounts": ["6133", "34552", "4411"],
+        "expected_debits": 1800,
+        "expected_credits": 1800,
+        "model_output": "Débit: 6133 (Réparations) 1500 MAD, Débit: 34552 (TVA) 300 MAD, Crédit: 4411 (Fournisseurs) 1800 MAD.",
+        "context_retrieved": "Compte 6133: Entretien et réparations. TVA standard 20%."
+    }
+]

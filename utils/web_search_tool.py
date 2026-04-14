@@ -36,6 +36,6 @@ from langchain_classic.tools.retriever import create_retriever_tool
 
 search = Tool(
     name="google_search",
-    description="Search Google for current information.",
+    description="Search Google for current information retrive facts information or currency information.",
     func=search_wrapper.run # Note: passing the function itself
 )

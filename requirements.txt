@@ -16,6 +16,9 @@ requests
 # Tracing & Monitoring
 langsmith
 langgraph
+langfuse
+ragas
+nest_asyncio
 
 # Web Framework
 fastapi
